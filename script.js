@@ -105,12 +105,12 @@ suggestionsList.addEventListener('click', (e) => {
     }
 });
 
-// function createReposListItem () {
-//
-// }
-//
-// reposList.addEventListener('click', (e) => {
-//     // if(e.target.className = 'btn__remove-repo') {
-//     //
-//     // }
-// })
+function createReposListItem () {
+
+}
+
+reposList.addEventListener('click', (e) => {
+    // if(e.target.className = 'btn__remove-repo') {
+    //
+    // }
+})
