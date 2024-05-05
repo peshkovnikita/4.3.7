@@ -1,10 +1,10 @@
 const input = document.querySelector('.repo-input');
 const suggestionsList = document.querySelector('.autocomplete-list');
-const warningLabel = document.querySelector('.warning-label');
 const reposList = document.querySelector('.repos-list');
+const warningLabel = document.querySelector('.warning-label');
 
 async function getRepos(keyword) {
-    const token = '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';
+    const token = 'TOKEN';
     const apiUrl = `https://api.github.com/search/repositories?q=${keyword}`;
 
     try {
@@ -16,13 +16,13 @@ async function getRepos(keyword) {
 
         if (response.ok) {
             const repoData = await response.json();
-            return repoData.items.slice(0, 5);
+            return repoData.items.slice(0, 5); //return first 5 repositories
         } else {
             console.error('Ошибка при выполнении запроса:', response.status);
         }
     }
     catch (err) {
-        console.log('Uncaught Error');
+        console.error('Uncaught Error');
     }
 }
 
@@ -33,7 +33,6 @@ function logInput(e) {
         return;
     }
 
-    console.log(e.target.value);
     let inputData = e.target.value;
 
     getRepos(inputData)
@@ -41,15 +40,17 @@ function logInput(e) {
             if(repoNames.length > 0) {
                 suggestionsList.style.display = 'flex';
                 warningLabel.innerText = '';
-                fillSuggestions(repoNames)
+                fillSuggestions(repoNames);
             } else {
-                suggestionsList.style.display = 'none';
-                throw new Error('There is no repository with this name!')
+                throw new Error('There is no repository with this name!');
             }
         })
         .catch(error => {
             warningLabel.innerText = error.message;
         });
+
+    //clear suggestions after every query
+    clearSuggestions();
 }
 
 function debounce(func, ms) {
@@ -77,10 +78,17 @@ function fillSuggestions(array) {
         listItem.innerText = array[i].name;
         suggestionsList.appendChild(listItem);
         listItem.setAttribute('data-full-info', `${JSON.stringify(data)}`);
-        listItem.setAttribute('tabindex', '0')
+        listItem.setAttribute('tabindex', '0');
     }
 }
 
+function clearSuggestions() {
+    while (suggestionsList.firstChild) {
+        suggestionsList.removeChild(suggestionsList.firstChild);
+    }
+}
+
+//create repo element and adding to repository list
 suggestionsList.addEventListener('click', (e) => {
     if (e.target.className === 'autocomplete__item') {
         const fullData = JSON.parse(e.target.getAttribute('data-full-info'))
@@ -105,12 +113,9 @@ suggestionsList.addEventListener('click', (e) => {
     }
 });
 
-function createReposListItem () {
-
-}
-
+//remove repository
 reposList.addEventListener('click', (e) => {
-    // if(e.target.className = 'btn__remove-repo') {
-    //
-    // }
-})
+    if(e.target.className === 'btn__remove-repo') {
+        e.target.parentElement.remove();
+    }
+});
