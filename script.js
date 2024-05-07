@@ -35,23 +35,12 @@ async function logInput(e) {
         return;
     }
 
-    const inputData = e.target.value;
+    clearSuggestions(); //clear suggestions before query
 
-    // getRepos(inputData)
-    //     .then((repoNames) => {
-    //         if(repoNames.length > 0) {
-    //             suggestionsList.style.display = 'flex';
-    //             warningLabel.innerText = '';
-    //             fillSuggestions(repoNames);
-    //         } else {
-    //             throw new Error('There is no repository with this name!');
-    //         }
-    //     })
-    //     .catch(error => {
-    //         warningLabel.innerText = error.message;
-    //     });
     try {
+        const inputData = e.target.value;
         const repoNames = await getRepos(inputData);
+
         if(repoNames.length > 0) {
             suggestionsList.style.display = 'flex';
             warningLabel.innerText = '';
@@ -63,9 +52,6 @@ async function logInput(e) {
     catch (error) {
         warningLabel.innerText = error.message;
     }
-
-    //clear suggestions after every query
-    clearSuggestions();
 }
 
 function debounce(func, ms) {
@@ -81,13 +67,12 @@ function debounce(func, ms) {
 input.onkeyup = debounce(logInput, 800);
 
 function fillSuggestions(array) {
-    console.log(array)
     for (let i = 0; i < array.length; i++) {
         const data = {
             name: array[i].name,
             owner: array[i].owner.login,
             stars: array[i].stargazers_count,
-        }
+        };
 
         suggestionsList.insertAdjacentHTML('beforeend',
             `<li class="autocomplete__item" data-full-info=${JSON.stringify(data)} tabindex="0">
@@ -106,7 +91,7 @@ function clearSuggestions() {
 //create repo element and adding to repository list
 suggestionsList.addEventListener('click', (e) => {
     if (e.target.className === 'autocomplete__item') {
-        const fullData = JSON.parse(e.target.getAttribute('data-full-info'))
+        const fullData = JSON.parse(e.target.getAttribute('data-full-info'));
 
         reposList.insertAdjacentHTML('beforeend',
             `<li class="repo">
