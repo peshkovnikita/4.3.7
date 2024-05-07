@@ -3,6 +3,7 @@ const suggestionsList = document.querySelector('.autocomplete-list');
 const reposList = document.querySelector('.repos-list');
 const warningLabel = document.querySelector('.warning-label');
 
+//get repositories from GitHub
 async function getRepos(keyword) {
     const token = 'TOKEN';
     const apiUrl = `https://api.github.com/search/repositories?q=${keyword}`;
@@ -26,28 +27,42 @@ async function getRepos(keyword) {
     }
 }
 
-function logInput(e) {
+//log input data in search field
+async function logInput(e) {
     if(e.target.value.length === 0) {
         suggestionsList.style.display = 'none';
         warningLabel.innerText = '';
         return;
     }
 
-    let inputData = e.target.value;
+    const inputData = e.target.value;
 
-    getRepos(inputData)
-        .then((repoNames) => {
-            if(repoNames.length > 0) {
-                suggestionsList.style.display = 'flex';
-                warningLabel.innerText = '';
-                fillSuggestions(repoNames);
-            } else {
-                throw new Error('There is no repository with this name!');
-            }
-        })
-        .catch(error => {
-            warningLabel.innerText = error.message;
-        });
+    // getRepos(inputData)
+    //     .then((repoNames) => {
+    //         if(repoNames.length > 0) {
+    //             suggestionsList.style.display = 'flex';
+    //             warningLabel.innerText = '';
+    //             fillSuggestions(repoNames);
+    //         } else {
+    //             throw new Error('There is no repository with this name!');
+    //         }
+    //     })
+    //     .catch(error => {
+    //         warningLabel.innerText = error.message;
+    //     });
+    try {
+        const repoNames = await getRepos(inputData);
+        if(repoNames.length > 0) {
+            suggestionsList.style.display = 'flex';
+            warningLabel.innerText = '';
+            fillSuggestions(repoNames);
+        } else {
+            throw new Error('There is no repository with this name!');
+        }
+    }
+    catch (error) {
+        warningLabel.innerText = error.message;
+    }
 
     //clear suggestions after every query
     clearSuggestions();
@@ -66,19 +81,19 @@ function debounce(func, ms) {
 input.onkeyup = debounce(logInput, 800);
 
 function fillSuggestions(array) {
+    console.log(array)
     for (let i = 0; i < array.length; i++) {
-        const listItem = document.createElement('li');
         const data = {
             name: array[i].name,
             owner: array[i].owner.login,
             stars: array[i].stargazers_count,
         }
 
-        listItem.classList.add('autocomplete__item');
-        listItem.innerText = array[i].name;
-        suggestionsList.appendChild(listItem);
-        listItem.setAttribute('data-full-info', `${JSON.stringify(data)}`);
-        listItem.setAttribute('tabindex', '0');
+        suggestionsList.insertAdjacentHTML('beforeend',
+            `<li class="autocomplete__item" data-full-info=${JSON.stringify(data)} tabindex="0">
+                ${data.name}
+            </li>`
+        );
     }
 }
 
@@ -93,27 +108,20 @@ suggestionsList.addEventListener('click', (e) => {
     if (e.target.className === 'autocomplete__item') {
         const fullData = JSON.parse(e.target.getAttribute('data-full-info'))
 
-        const listItem = document.createElement('li');
-        const wrapper = document.createElement('div');
-        const btn = document.createElement('button');
-
-        listItem.classList.add('repo');
-        wrapper.classList.add('repo__text-wrapper');
-        btn.classList.add('btn__remove-repo');
-
-        reposList.appendChild(listItem);
-        listItem.appendChild(wrapper);
-        listItem.appendChild(btn);
-
-        for (const prop in fullData) {
-            const text = document.createElement('p');
-            wrapper.appendChild(text);
-            text.innerText = `${prop}: ${fullData[prop]}`;
-        }
+        reposList.insertAdjacentHTML('beforeend',
+            `<li class="repo">
+                <div class="repo__text-wrapper">
+                    <p>Name: ${fullData.name}</p>
+                    <p>Owner: ${fullData.owner}</p>
+                    <p>Stars: ${fullData.stars}</p>
+                </div> 
+                <button type="button" class="btn__remove-repo"></button>
+            </li>`
+        );
     }
 });
 
-//remove repository
+//remove repository from list
 reposList.addEventListener('click', (e) => {
     if(e.target.className === 'btn__remove-repo') {
         e.target.parentElement.remove();
